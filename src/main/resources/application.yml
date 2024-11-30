@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: beans-menu
+  cache:
+    type: simple
+  data:
+    mongodb:
+      uri: mongodb://root:password@localhost:27017/beansmenu?authSource=admin
+      database: beansmenu
+  logging:
+    level:
+      org.springframework.data.mongodb.core: DEBUG
+server:
+  port: 8002
