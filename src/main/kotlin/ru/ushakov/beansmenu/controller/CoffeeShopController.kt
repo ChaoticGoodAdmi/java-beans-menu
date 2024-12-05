@@ -22,8 +22,12 @@ class CoffeeShopController(private val coffeeShopService: CoffeeShopService) {
         return coffeeShopService.create(coffeeShop)
     }
 
-    @DeleteMapping("/{id}")
-    fun delete(@PathVariable id: String) = coffeeShopService.delete(ObjectId(id))
+    @DeleteMapping
+    fun delete(@RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String) {
+        check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
+        coffeeShopService.delete(ObjectId(coffeeShopId))
+    }
+
 }
 
 data class CoffeeShopCreateDTO(

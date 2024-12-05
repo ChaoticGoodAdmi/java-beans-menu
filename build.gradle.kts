@@ -33,6 +33,9 @@ kotlin {
 	compilerOptions {
 		freeCompilerArgs.addAll("-Xjsr305=strict")
 	}
+	jvmToolchain {
+		languageVersion.set(JavaLanguageVersion.of(17))
+	}
 }
 
 tasks.withType<Test> {

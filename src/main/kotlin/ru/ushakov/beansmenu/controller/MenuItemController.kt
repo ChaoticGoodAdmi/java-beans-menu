@@ -14,12 +14,13 @@ import java.util.*
 @RequestMapping("/menu")
 class MenuItemController(private val menuItemService: MenuItemService) {
 
-    @GetMapping("/{coffeeShopId}")
+    @GetMapping
     fun getMenu(
-        @PathVariable coffeeShopId: String,
+        @RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String,
         @RequestParam(required = false) category: String?,
         @RequestParam(required = false) priceRange: List<BigDecimal>?
     ): List<MenuItemSummaryDTO> {
+        check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
         return menuItemService.getMenuSummaryByCoffeeShop(
             ObjectId(coffeeShopId),
             category,
@@ -32,11 +33,12 @@ class MenuItemController(private val menuItemService: MenuItemService) {
         return menuItemService.getMenuItemDetails(ObjectId(itemId))
     }
 
-    @PostMapping("/{coffeeShopId}/item")
+    @PostMapping("/item")
     fun addMenuItem(
-        @PathVariable coffeeShopId: String,
+        @RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String,
         @RequestBody menuItemCreateDTO: MenuItemCreateDTO
     ): MenuItem {
+        check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
         return menuItemService.addMenuItem(ObjectId(coffeeShopId), menuItemCreateDTO)
     }
 
@@ -48,8 +50,9 @@ class MenuItemController(private val menuItemService: MenuItemService) {
         return menuItemService.updateMenuItem(ObjectId(itemId), menuItemUpdateDTO)
     }
 
-    @GetMapping("/{coffeeShopId}/stop-list")
-    fun getInactiveMenuItems(@PathVariable coffeeShopId: String): List<MenuItem> {
+    @GetMapping("/stop-list")
+    fun getInactiveMenuItems(@RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String): List<MenuItem> {
+        check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
         return menuItemService.getInactiveMenuItems(ObjectId(coffeeShopId))
     }
 }
