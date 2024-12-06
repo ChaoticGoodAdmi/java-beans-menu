@@ -10,5 +10,30 @@ spring:
   logging:
     level:
       org.springframework.data.mongodb.core: DEBUG
+
 server:
   port: 8002
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  metrics:
+    distribution:
+      percentiles:
+        all:
+          - 0.5
+          - 0.95
+          - 0.99
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: "beans-menu"
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  endpoint:
+    prometheus:
+      access: unrestricted
