@@ -1,6 +1,9 @@
 package ru.ushakov.beansmenu.controller
 
 import org.bson.types.ObjectId
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import ru.ushakov.beansmenu.controller.dto.MenuItemDetailsDTO
 import ru.ushakov.beansmenu.controller.dto.MenuItemSummaryDTO
@@ -14,6 +17,8 @@ import java.util.*
 @RequestMapping("/menu")
 class MenuItemController(private val menuItemService: MenuItemService) {
 
+    private val logger: Logger = LoggerFactory.getLogger(MenuItemController::class.java)
+
     @GetMapping
     fun getMenu(
         @RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String,
@@ -21,6 +26,7 @@ class MenuItemController(private val menuItemService: MenuItemService) {
         @RequestParam(required = false) priceRange: List<BigDecimal>?
     ): List<MenuItemSummaryDTO> {
         check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
+        logger.info("Filter menu by category: {}", category)
         return menuItemService.getMenuSummaryByCoffeeShop(
             ObjectId(coffeeShopId),
             category,
@@ -40,6 +46,14 @@ class MenuItemController(private val menuItemService: MenuItemService) {
     ): MenuItem {
         check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
         return menuItemService.addMenuItem(ObjectId(coffeeShopId), menuItemCreateDTO)
+    }
+
+    @DeleteMapping("/item/{itemId}")
+    fun deleteMenuItem(
+        @PathVariable itemId: String
+    ): ResponseEntity<Unit> {
+        menuItemService.deleteMenuItem(ObjectId(itemId))
+        return ResponseEntity.ok().build()
     }
 
     @PatchMapping("/item/{itemId}")

@@ -20,7 +20,6 @@ class MenuItemService(
     private val cacheManager: CacheManager
 ) {
 
-    @Cacheable("menu-summary", key = "#coffeeShopId + ':' + #category + ':' + #priceRange")
     fun getMenuSummaryByCoffeeShop(
         coffeeShopId: ObjectId,
         category: String?,
@@ -49,7 +48,6 @@ class MenuItemService(
         return menuItemRepository.findByCoffeeShopIdAndActive(coffeeShopId, false)
     }
 
-    @CacheEvict(value = ["menu-summary"], key = "#coffeeShopId")
     fun addMenuItem(coffeeShopId: ObjectId, menuItemDTO: MenuItemCreateDTO): MenuItem {
         val menuItem = MenuItem(
             coffeeShopId = coffeeShopId,
@@ -91,6 +89,14 @@ class MenuItemService(
         clearMenuCache(existingItem.coffeeShopId)
 
         return menuItemRepository.save(updatedItem)
+    }
+
+    fun deleteMenuItem(itemId: ObjectId) {
+        val existingItem = menuItemRepository.findById(itemId).orElseThrow {
+            IllegalArgumentException("Menu item with ID $itemId not found")
+        }
+        clearMenuCache(existingItem.coffeeShopId)
+        menuItemRepository.deleteById(itemId)
     }
 
     private fun mergeMaps(original: Map<DrinkSize, BigDecimal>, updates: Map<DrinkSize, BigDecimal>): Map<DrinkSize, BigDecimal> {
