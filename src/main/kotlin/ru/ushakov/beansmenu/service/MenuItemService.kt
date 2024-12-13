@@ -1,6 +1,8 @@
 package ru.ushakov.beansmenu.service
 
 import org.bson.types.ObjectId
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -16,28 +18,24 @@ import java.math.BigDecimal
 
 @Service
 class MenuItemService(
-    private val menuItemRepository: MenuItemRepository,
-    private val cacheManager: CacheManager
+    private val menuItemRepository: MenuItemRepository
 ) {
+    private val log: Logger = LoggerFactory.getLogger(MenuItemService::class.java)
 
+    @Cacheable(value = ["menuSummary"], key = "#coffeeShopId + '_' + #category")
     fun getMenuSummaryByCoffeeShop(
         coffeeShopId: ObjectId,
-        category: String?,
-        priceRange: List<BigDecimal>?
+        category: String?
     ): List<MenuItemSummaryDTO> {
+        log.info("Get menu summary by coffee-shop {} and category {}", coffeeShopId.toHexString(), category)
         val menuItems = menuItemRepository.findByCoffeeShopIdAndActive(coffeeShopId, true)
-        return menuItems.filter { item ->
-            val categoryMatch = category?.let { item.category == it } ?: true
-            val priceMatch = priceRange?.let {
-                val minPrice = it.firstOrNull() ?: BigDecimal.ZERO
-                val maxPrice = it.getOrNull(1) ?: BigDecimal.valueOf(Double.MAX_VALUE)
-                item.price[DrinkSize.MEDIUM]?.let { price -> price in minPrice..maxPrice } ?: false
-            } ?: true
-            categoryMatch && priceMatch
-        }.map { it.toSummaryDTO() }
+        return menuItems.filter { item -> category?.let { item.category == it } ?: true }
+            .map { it.toSummaryDTO() }
     }
 
+    @Cacheable(value = ["menuItemDetail"], key = "#itemId.toHexString()")
     fun getMenuItemDetails(itemId: ObjectId): MenuItemDetailsDTO? {
+        log.info("Get menu item detail by id {}", itemId)
         val menuItem = menuItemRepository.findById(itemId).orElse(null) ?: return null
         val relatedItems = menuItemRepository.findAllById(menuItem.relatedItems)
             .map { it.toSummaryDTO() }
@@ -48,6 +46,7 @@ class MenuItemService(
         return menuItemRepository.findByCoffeeShopIdAndActive(coffeeShopId, false)
     }
 
+    @CacheEvict(value = ["menuSummary"], key = "#coffeeShopId + '_' + #menuItemDTO.category", allEntries = false)
     fun addMenuItem(coffeeShopId: ObjectId, menuItemDTO: MenuItemCreateDTO): MenuItem {
         val menuItem = MenuItem(
             coffeeShopId = coffeeShopId,
@@ -67,6 +66,7 @@ class MenuItemService(
         return menuItemRepository.save(menuItem)
     }
 
+    @CacheEvict(value = ["menuSummary"], key = "#existingItem.coffeeShopId + '_' + #existingItem.category", allEntries = false)
     fun updateMenuItem(itemId: ObjectId, updateDTO: MenuItemUpdateDTO): MenuItem {
         val existingItem = menuItemRepository.findById(itemId).orElseThrow {
             IllegalArgumentException("Menu item with ID $itemId not found")
@@ -86,27 +86,25 @@ class MenuItemService(
             composition = updateDTO.composition ?: existingItem.composition,
             active = updateDTO.active ?: existingItem.active
         )
-        clearMenuCache(existingItem.coffeeShopId)
 
         return menuItemRepository.save(updatedItem)
     }
 
+    @CacheEvict(value = ["menuSummary"], key = "#existingItem.coffeeShopId + '_' + #existingItem.category", allEntries = false)
     fun deleteMenuItem(itemId: ObjectId) {
         val existingItem = menuItemRepository.findById(itemId).orElseThrow {
             IllegalArgumentException("Menu item with ID $itemId not found")
         }
-        clearMenuCache(existingItem.coffeeShopId)
-        menuItemRepository.deleteById(itemId)
+        menuItemRepository.delete(existingItem)
     }
 
-    private fun mergeMaps(original: Map<DrinkSize, BigDecimal>, updates: Map<DrinkSize, BigDecimal>): Map<DrinkSize, BigDecimal> {
+    private fun mergeMaps(
+        original: Map<DrinkSize, BigDecimal>,
+        updates: Map<DrinkSize, BigDecimal>
+    ): Map<DrinkSize, BigDecimal> {
         return original.toMutableMap().apply {
             updates.forEach { (key, value) -> this[key] = value }
         }
-    }
-
-    private fun clearMenuCache(coffeeShopId: ObjectId) {
-        cacheManager.getCache("menu-summary")?.evict(coffeeShopId)
     }
 
     private fun MenuItem.toSummaryDTO() = MenuItemSummaryDTO(

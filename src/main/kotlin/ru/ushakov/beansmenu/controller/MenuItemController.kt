@@ -22,15 +22,12 @@ class MenuItemController(private val menuItemService: MenuItemService) {
     @GetMapping
     fun getMenu(
         @RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String,
-        @RequestParam(required = false) category: String?,
-        @RequestParam(required = false) priceRange: List<BigDecimal>?
+        @RequestParam(required = false) category: String?
     ): List<MenuItemSummaryDTO> {
         check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
-        logger.info("Filter menu by category: {}", category)
         return menuItemService.getMenuSummaryByCoffeeShop(
             ObjectId(coffeeShopId),
-            category,
-            priceRange
+            category
         )
     }
 

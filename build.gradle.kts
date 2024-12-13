@@ -23,6 +23,8 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-web")
 
+	implementation("org.springframework.boot:spring-boot-starter-validation")
+
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -32,6 +34,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-actuator:3.4.0")
 	implementation("io.micrometer:micrometer-registry-prometheus")
 	implementation("io.micrometer:micrometer-core")
+
+	implementation("org.springframework.boot:spring-boot-starter-data-redis:3.4.0")
+
+	implementation("org.springframework:spring-beans")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

@@ -1,12 +1,15 @@
 spring:
   application:
     name: beans-menu
-  cache:
-    type: simple
   data:
     mongodb:
-      uri: mongodb://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}?authSource=admin
+      uri: mongodb://${DB_HOST}/${DB_NAME}?authSource=admin&replicaSet=${DB_REPLICASET}
       database: beansmenu
+    redis:
+      host: ${REDIS_HOST:menu-redis-svc}
+      port: ${REDIS_PORT:16379}
+      password: ${REDIS_PASSWORD}
+      logging: DEBUG
   logging:
     level:
       org.springframework.data.mongodb.core: DEBUG
@@ -20,6 +23,7 @@ management:
       exposure:
         include: "*"
   metrics:
+    enable.redis: true
     distribution:
       percentiles:
         all:

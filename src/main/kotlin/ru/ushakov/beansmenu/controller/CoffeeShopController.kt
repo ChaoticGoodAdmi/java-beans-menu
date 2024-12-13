@@ -10,7 +10,7 @@ import ru.ushakov.beansmenu.service.CoffeeShopService
 class CoffeeShopController(private val coffeeShopService: CoffeeShopService) {
 
     @GetMapping
-    fun getAll(): List<CoffeeShop> = coffeeShopService.getAll()
+    fun getAll(): List<CoffeeShopDto> = coffeeShopService.getAll()
 
     @PostMapping
     fun create(@RequestBody coffeeShopDto: CoffeeShopCreateDTO): CoffeeShop {
@@ -29,6 +29,13 @@ class CoffeeShopController(private val coffeeShopService: CoffeeShopService) {
     }
 
 }
+
+data class CoffeeShopDto(
+    val id: String = String(),
+    val name: String = String(),
+    val address: String = String(),
+    val city: String = String()
+)
 
 data class CoffeeShopCreateDTO(
     val name: String = "",

@@ -1,32 +1,32 @@
 package ru.ushakov.beansmenu.domain
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import ru.ushakov.beansmenu.config.ObjectIdSerializer
+import java.io.Serializable
 import java.math.BigDecimal
 
 @Document(collection = "menu_items")
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class MenuItem(
 
-    @JsonSerialize(using = ObjectIdSerializer::class)
     @Id val id: ObjectId = ObjectId.get(),
-    val coffeeShopId: ObjectId,
-    val name: String,
-    val imageBase64: String,
-    val category: String,
-    val description: String,
-    val price: Map<DrinkSize, BigDecimal>,
-    val calories: Int,
-    val protein: Double,
-    val fat: Double,
-    val carbs: Double,
-    val weight: Int,
-    val composition: List<String>,
+    val coffeeShopId: ObjectId = ObjectId.get(),
+    val name: String = String(),
+    val imageBase64: String = String(),
+    val category: String = String(),
+    val description: String = String(),
+    val price: Map<DrinkSize, BigDecimal> = mapOf(),
+    val calories: Int = 0,
+    val protein: Double = 0.0,
+    val fat: Double = 0.0,
+    val carbs: Double = 0.0,
+    val weight: Int = 0,
+    val composition: List<String> = listOf(),
     val relatedItems: List<ObjectId> = listOf(),
     val active: Boolean = true
-)
+) : Serializable
 
 enum class DrinkSize {
     SMALL, MEDIUM, LARGE

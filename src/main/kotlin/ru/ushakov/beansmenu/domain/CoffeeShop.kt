@@ -1,17 +1,17 @@
 package ru.ushakov.beansmenu.domain
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import ru.ushakov.beansmenu.config.ObjectIdSerializer
 
 @Document(collection = "coffee_shops")
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class CoffeeShop(
 
-    @JsonSerialize(using = ObjectIdSerializer::class)
     @Id val id: ObjectId = ObjectId.get(),
-    val name: String,
-    val address: String,
-    val city: String
+    val name: String = String(),
+    val address: String = String(),
+    val city: String = String()
+
 )
