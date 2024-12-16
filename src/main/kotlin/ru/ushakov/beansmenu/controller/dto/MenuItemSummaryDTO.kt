@@ -1,6 +1,7 @@
 package ru.ushakov.beansmenu.controller.dto
 
 import ru.ushakov.beansmenu.domain.DrinkSize
+import java.io.Serializable
 import java.math.BigDecimal
 
 data class MenuItemSummaryDTO(
@@ -9,7 +10,7 @@ data class MenuItemSummaryDTO(
     val category: String = String(),
     val price: BigDecimal = BigDecimal.ZERO,
     val imageBase64: String = String()
-)
+) : Serializable
 
 data class MenuItemDetailsDTO(
     val id: String = String(),
@@ -25,4 +26,4 @@ data class MenuItemDetailsDTO(
     val weight: Int = 0,
     val composition: List<String> = listOf(),
     val relatedItems: List<MenuItemSummaryDTO> = listOf()
-)
+) : Serializable

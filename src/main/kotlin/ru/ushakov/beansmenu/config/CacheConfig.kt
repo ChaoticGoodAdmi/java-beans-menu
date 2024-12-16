@@ -27,7 +27,7 @@ class CacheConfig {
     @Bean
     fun cacheManager(redisConnectionFactory: RedisConnectionFactory): CacheManager {
         val cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
-            .entryTtl(Duration.ofHours(6))
+            .entryTtl(Duration.ofMinutes(10))
             .disableCachingNullValues()
             .serializeValuesWith(
                 RedisSerializationContext.SerializationPair.fromSerializer(

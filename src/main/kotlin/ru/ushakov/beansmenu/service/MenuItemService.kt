@@ -3,7 +3,6 @@ package ru.ushakov.beansmenu.service
 import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -22,16 +21,21 @@ class MenuItemService(
 ) {
     private val log: Logger = LoggerFactory.getLogger(MenuItemService::class.java)
 
-    @Cacheable(value = ["menuSummary"], key = "#coffeeShopId + '_' + #category")
+    @Cacheable(
+        value = ["menuSummary"],
+        key = "#coffeeShopId + ':' + (#category ?: 'ALL')"
+    )
     fun getMenuSummaryByCoffeeShop(
         coffeeShopId: ObjectId,
         category: String?
     ): List<MenuItemSummaryDTO> {
         log.info("Get menu summary by coffee-shop {} and category {}", coffeeShopId.toHexString(), category)
         val menuItems = menuItemRepository.findByCoffeeShopIdAndActive(coffeeShopId, true)
+        log.info("Found {} items in DB", menuItems.size)
         return menuItems.filter { item -> category?.let { item.category == it } ?: true }
             .map { it.toSummaryDTO() }
     }
+
 
     @Cacheable(value = ["menuItemDetail"], key = "#itemId.toHexString()")
     fun getMenuItemDetails(itemId: ObjectId): MenuItemDetailsDTO? {

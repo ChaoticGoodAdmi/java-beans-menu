@@ -13,6 +13,11 @@ spring:
   logging:
     level:
       org.springframework.data.mongodb.core: DEBUG
+  jpa:
+    show-sql: true
+logging:
+  level:
+    org.springframework.cache.interceptor.CacheInterceptor: DEBUG
 
 server:
   port: 8002
