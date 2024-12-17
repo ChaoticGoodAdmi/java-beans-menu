@@ -23,7 +23,7 @@ class MenuItemService(
 
     @Cacheable(
         value = ["menuSummary"],
-        key = "#coffeeShopId + ':' + (#category ?: 'ALL')"
+        key = "#coffeeShopId.toHexString() + ':' + (#category ?: 'ALL')"
     )
     fun getMenuSummaryByCoffeeShop(
         coffeeShopId: ObjectId,
@@ -46,12 +46,12 @@ class MenuItemService(
         return menuItem.toDetailsDTO(relatedItems)
     }
 
-    fun getInactiveMenuItems(coffeeShopId: ObjectId): List<MenuItem> {
-        return menuItemRepository.findByCoffeeShopIdAndActive(coffeeShopId, false)
+    fun getInactiveMenuItems(coffeeShopId: ObjectId): List<MenuItemDetailsDTO> {
+        return menuItemRepository.findByCoffeeShopIdAndActive(coffeeShopId, false).map { it.toDetailsDTO(listOf())}
     }
 
-    @CacheEvict(value = ["menuSummary"], key = "#coffeeShopId + '_' + #menuItemDTO.category", allEntries = false)
-    fun addMenuItem(coffeeShopId: ObjectId, menuItemDTO: MenuItemCreateDTO): MenuItem {
+    @CacheEvict(value = ["menuSummary"], allEntries = true)
+    fun addMenuItem(coffeeShopId: ObjectId, menuItemDTO: MenuItemCreateDTO): String {
         val menuItem = MenuItem(
             coffeeShopId = coffeeShopId,
             name = menuItemDTO.name,
@@ -67,14 +67,16 @@ class MenuItemService(
             composition = menuItemDTO.composition,
             relatedItems = menuItemDTO.relatedItems.map { ObjectId(it) }
         )
-        return menuItemRepository.save(menuItem)
+        val saved = menuItemRepository.save(menuItem)
+        return saved.id.toHexString()
     }
 
-    @CacheEvict(value = ["menuSummary"], key = "#existingItem.coffeeShopId + '_' + #existingItem.category", allEntries = false)
-    fun updateMenuItem(itemId: ObjectId, updateDTO: MenuItemUpdateDTO): MenuItem {
+    @CacheEvict(value = ["menuSummary"], allEntries = true)
+    fun updateMenuItem(coffeeShopId: String, itemId: ObjectId, updateDTO: MenuItemUpdateDTO): MenuItem {
         val existingItem = menuItemRepository.findById(itemId).orElseThrow {
             IllegalArgumentException("Menu item with ID $itemId not found")
         }
+        require(existingItem.coffeeShopId.toHexString() == coffeeShopId) { "Rejected updating different coffee-shop menu" }
 
         val updatedItem = existingItem.copy(
             name = updateDTO.name ?: existingItem.name,
@@ -94,11 +96,12 @@ class MenuItemService(
         return menuItemRepository.save(updatedItem)
     }
 
-    @CacheEvict(value = ["menuSummary"], key = "#existingItem.coffeeShopId + '_' + #existingItem.category", allEntries = false)
-    fun deleteMenuItem(itemId: ObjectId) {
+    @CacheEvict(value = ["menuSummary"], allEntries = true)
+    fun deleteMenuItem(coffeeShopId: String, itemId: ObjectId) {
         val existingItem = menuItemRepository.findById(itemId).orElseThrow {
             IllegalArgumentException("Menu item with ID $itemId not found")
         }
+        require(existingItem.coffeeShopId.toHexString() == coffeeShopId) { "Rejected updating different coffee-shop menu" }
         menuItemRepository.delete(existingItem)
     }
 

@@ -40,29 +40,31 @@ class MenuItemController(private val menuItemService: MenuItemService) {
     fun addMenuItem(
         @RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String,
         @RequestBody menuItemCreateDTO: MenuItemCreateDTO
-    ): MenuItem {
+    ): Map<String, String> {
         check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
-        return menuItemService.addMenuItem(ObjectId(coffeeShopId), menuItemCreateDTO)
+        return mapOf("id" to menuItemService.addMenuItem(ObjectId(coffeeShopId), menuItemCreateDTO))
     }
 
     @DeleteMapping("/item/{itemId}")
     fun deleteMenuItem(
+        @RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String,
         @PathVariable itemId: String
     ): ResponseEntity<Unit> {
-        menuItemService.deleteMenuItem(ObjectId(itemId))
+        menuItemService.deleteMenuItem(coffeeShopId, ObjectId(itemId))
         return ResponseEntity.ok().build()
     }
 
     @PatchMapping("/item/{itemId}")
     fun updateMenuItem(
+        @RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String,
         @PathVariable itemId: String,
         @RequestBody menuItemUpdateDTO: MenuItemUpdateDTO
     ): MenuItem {
-        return menuItemService.updateMenuItem(ObjectId(itemId), menuItemUpdateDTO)
+        return menuItemService.updateMenuItem(coffeeShopId, ObjectId(itemId), menuItemUpdateDTO)
     }
 
     @GetMapping("/stop-list")
-    fun getInactiveMenuItems(@RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String): List<MenuItem> {
+    fun getInactiveMenuItems(@RequestHeader(name = "X-CoffeeShopId", required = true) coffeeShopId: String): List<MenuItemDetailsDTO> {
         check(coffeeShopId.isNotBlank()) { "User is not attached to any coffee-shops" }
         return menuItemService.getInactiveMenuItems(ObjectId(coffeeShopId))
     }
